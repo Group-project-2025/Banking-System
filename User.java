@@ -12,7 +12,7 @@ public abstract class User {
         this.name = name;
         this.email = email;
     }
-
+// test
     public abstract boolean login(String username, String password);
     public abstract void logout();
     public abstract void updateProfile(String name, String email, String password);
