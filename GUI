@@ -1,0 +1,110 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class BankingAppGUI extends JFrame {
+    private Bank bank;
+    private Customer loggedInCustomer;
+
+    private JComboBox<Account> accountSelector;
+    private JTextArea outputArea;
+    private JTextField amountField;
+    private JComboBox<String> transactionTypeBox;
+
+    public BankingAppGUI(Bank bank) {
+        this.bank = bank;
+
+        setTitle("Banking Management System");
+        setSize(500, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        // Layout
+        setLayout(new BorderLayout());
+
+        // Top panel for login
+        JPanel topPanel = new JPanel(new FlowLayout());
+        JTextField usernameField = new JTextField(10);
+        JTextField passwordField = new JPasswordField(10);
+        JButton loginButton = new JButton("Login");
+
+        topPanel.add(new JLabel("Username:"));
+        topPanel.add(usernameField);
+        topPanel.add(new JLabel("Password:"));
+        topPanel.add(passwordField);
+        topPanel.add(loginButton);
+
+        add(topPanel, BorderLayout.NORTH);
+
+        // Center panel for account operations
+        JPanel centerPanel = new JPanel(new GridLayout(5, 2));
+        accountSelector = new JComboBox<>();
+        amountField = new JTextField();
+        transactionTypeBox = new JComboBox<>(new String[]{"Deposit", "Withdraw"});
+
+        JButton submitButton = new JButton("Submit Transaction");
+        outputArea = new JTextArea(10, 30);
+        outputArea.setEditable(false);
+
+        centerPanel.add(new JLabel("Select Account:"));
+        centerPanel.add(accountSelector);
+        centerPanel.add(new JLabel("Transaction Type:"));
+        centerPanel.add(transactionTypeBox);
+        centerPanel.add(new JLabel("Amount:"));
+        centerPanel.add(amountField);
+        centerPanel.add(new JLabel(""));
+        centerPanel.add(submitButton);
+
+        add(centerPanel, BorderLayout.CENTER);
+        add(new JScrollPane(outputArea), BorderLayout.SOUTH);
+
+        // Action listener for login
+        loginButton.addActionListener(e -> {
+            String username = usernameField.getText();
+            String password = passwordField.getText();
+
+            User user = bank.findUser(username);
+            if (user instanceof Customer && user.getPassword().equals(password)) {
+                loggedInCustomer = (Customer) user;
+                outputArea.setText("Login successful. Welcome " + loggedInCustomer.getName() + "!\n");
+
+                accountSelector.removeAllItems();
+                for (Account account : loggedInCustomer.getAccounts()) {
+                    accountSelector.addItem(account);
+                }
+            } else {
+                outputArea.setText("Login failed. Invalid credentials.\n");
+            }
+        });
+
+        // Action listener for transaction submission
+        submitButton.addActionListener(e -> {
+            if (loggedInCustomer == null) {
+                outputArea.setText("Please log in first.\n");
+                return;
+            }
+
+            Account selectedAccount = (Account) accountSelector.getSelectedItem();
+            String type = (String) transactionTypeBox.getSelectedItem();
+            double amount;
+
+            try {
+                amount = Double.parseDouble(amountField.getText());
+            } catch (NumberFormatException ex) {
+                outputArea.setText("Invalid amount.\n");
+                return;
+            }
+
+            if (type.equals("Deposit")) {
+                loggedInCustomer.makeTransaction(bank, "deposit", amount, selectedAccount, null);
+            } else if (type.equals("Withdraw")) {
+                loggedInCustomer.makeTransaction(bank, "withdraw", amount, selectedAccount, null);
+            }
+
+            outputArea.setText("Transaction completed.\nNew Balance: " + selectedAccount.getBalance());
+        });
+
+        setVisible(true);
+    }
+}
