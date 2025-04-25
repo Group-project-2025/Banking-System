@@ -1,0 +1,14 @@
+public class Main {
+    public static void main(String[] args) {
+        Bank bank = new Bank();
+
+        // Create test customer
+        Customer customer = new Customer("C001", "john", "123", "John Doe", "john@example.com", "123 Main St");
+        Account checking = new CheckingAccount("CHK101", 1000.0, "active", customer);
+        bank.createUser(customer);
+        bank.createAccount(checking);
+
+        // Launch GUI
+        new BankingAppGUI(bank);
+    }
+}
